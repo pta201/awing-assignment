@@ -1,4 +1,4 @@
-import { CampaignForm } from "../../components";
+import { CampaignForm } from "@/modules/campaign/components";
 
 export function CampaignCreatePage() {
   return (
