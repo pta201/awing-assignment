@@ -1,11 +1,12 @@
 import { TabPanel } from "@/components/TabPanel";
-import { CampaignInformationInput } from "@/modules/campaign/components/Form/CampainInformationInput";
-import { SubCampaignInput } from "@/modules/campaign/components/Form/SubCampaignInput";
 import { Box, Button, Container, Divider, Paper, Tabs } from "@mui/material";
 import Tab from "@mui/material/Tab";
 import React from "react";
+import { CampaignProvider } from "../../hooks/useCampaign";
+import { CampaignInformationPanel } from "@/modules/campaign/components/Form/CampainInformationPanel";
+import { SubCampaignPanel } from "@/modules/campaign/components/Form/SubCampaignPanel";
 
-export function CampaignForm() {
+function Form() {
   const [activeTab, setActiveTab] = React.useState("information");
 
   const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -36,13 +37,21 @@ export function CampaignForm() {
           </Box>
 
           <TabPanel value="information" currentActiveTab={activeTab}>
-            <CampaignInformationInput />
+            <CampaignInformationPanel />
           </TabPanel>
           <TabPanel value="subCampaigns" currentActiveTab={activeTab}>
-            <SubCampaignInput />
+            <SubCampaignPanel />
           </TabPanel>
         </Paper>
       </Container>
     </form>
+  );
+}
+
+export function CampaignForm() {
+  return (
+    <CampaignProvider>
+      <Form />
+    </CampaignProvider>
   );
 }

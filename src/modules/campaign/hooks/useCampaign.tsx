@@ -6,14 +6,14 @@ import React, {
   useState,
 } from "react";
 
-interface CampaignFormContext {
-  handleFormSubmit: (
-    e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>
-  ) => void;
-  data: Campaign;
+interface ICampaignFormContext {
+  information: Campaign["information"];
+  subCampaigns: Campaign["subCampaigns"];
+  updateInformation: ({ name, describe }: Campaign["information"]) => void;
+  updateSubCampaign: (subCampaigns: SubCampaign[]) => void;
 }
 
-const CampaignFormContext = createContext(null);
+const CampaignFormContext = createContext<ICampaignFormContext>(null!);
 
 export const CampaignProvider = ({ children }: PropsWithChildren) => {
   const [information, setInfomation] = React.useState<Campaign["information"]>({
@@ -36,10 +36,11 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
   const value = useMemo(
     () => ({
       information,
+      subCampaigns,
       updateInformation: handleUpdateInformation,
       updateSubCampaign: handleUpdateSubCampaigns,
     }),
-    []
+    [information, subCampaigns]
   );
 
   return (
@@ -47,4 +48,12 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
       {children}
     </CampaignFormContext.Provider>
   );
+};
+
+export const useCampaign = () => {
+  const context = React.useContext(CampaignFormContext);
+  if (!context) {
+    throw new Error("useCampaign must be used within CampaignProvider");
+  }
+  return context;
 };
