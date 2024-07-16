@@ -29,6 +29,7 @@ export interface ICampaignFormContext {
   updateSubCampaignStatus: () => void;
   removeSubCampaignAd: () => void;
   addSubCampaignAd: () => void;
+  updateAd: ({ id, value }: { id: string; value: Partial<FormAd> }) => void;
 }
 
 const CampaignFormContext = createContext<ICampaignFormContext>(null!);
@@ -99,7 +100,7 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
     setSubCampaigns((prev) => [...prev, newSubCampaign]);
   }, [subCampaigns.length]);
 
-  const updateSubCampaignStatus = () => {
+  const updateSubCampaignStatus = useCallback(() => {
     if (!currentSubCampaign) return;
     setSubCampaigns((prev) => {
       return prev.map((item) => {
@@ -110,37 +111,31 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
         };
       });
     });
-  };
+  }, [currentSubCampaign]);
 
-  const addSubCampaignAd = useCallback(
-    (subCampaignId: string) => {
-      const subCampaign = subCampaigns.find(
-        (item) => item.id === subCampaignId
-      );
-      if (!subCampaign) return;
+  const addSubCampaignAd = useCallback(() => {
+    if (!currentSubCampaign) return;
 
-      const count = subCampaign.ads.length;
+    const count = currentSubCampaign.ads.length;
 
-      const newAd: FormAd = {
-        id: generateId("ad"),
-        name: `Quảng cáo ${count + 1}`,
-        quantity: 0,
-      };
+    const newAd: FormAd = {
+      id: generateId(`ad`),
+      name: `Quảng cáo ${count + 1}`,
+      quantity: 0,
+    };
 
-      setSubCampaigns((prev) => {
-        return prev.map((subCampaign) => {
-          if (subCampaign.id === subCampaignId) {
-            return {
-              ...subCampaign,
-              ads: [...subCampaign.ads, newAd],
-            };
-          }
-          return subCampaign;
-        });
+    setSubCampaigns((prev) => {
+      return prev.map((subCampaign) => {
+        if (subCampaign.id === currentSubCampaign.id) {
+          return {
+            ...subCampaign,
+            ads: [...subCampaign.ads, newAd],
+          };
+        }
+        return subCampaign;
       });
-    },
-    [subCampaigns]
-  );
+    });
+  }, [currentSubCampaign]);
 
   const removeSubCampaignAd = useCallback(
     (id: string, subCampaignId: string) => {
@@ -165,6 +160,30 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
     [subCampaigns]
   );
 
+  const updateAd = useCallback(
+    ({ id, value }: { id: string; value: Partial<FormAd> }) => {
+      setSubCampaigns((prev) => {
+        const newSubCampaigns = prev.map((subCampaign) => {
+          const newAds = subCampaign.ads.map((ad) => {
+            if (ad.id === id) {
+              return {
+                ...ad,
+                ...value,
+              };
+            }
+            return ad;
+          });
+          return {
+            ...subCampaign,
+            ads: newAds,
+          };
+        });
+        return newSubCampaigns;
+      });
+    },
+    []
+  );
+
   const value = useMemo(
     () => ({
       information,
@@ -179,6 +198,7 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
       updateSubCampaignStatus,
       removeSubCampaignAd,
       addSubCampaignAd,
+      updateAd,
     }),
 
     [
@@ -189,6 +209,7 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
       information,
       removeSubCampaignAd,
       subCampaigns,
+      updateAd,
       updateSubCampaignName,
       updateSubCampaignStatus,
     ]

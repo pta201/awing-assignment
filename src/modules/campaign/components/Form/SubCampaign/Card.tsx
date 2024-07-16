@@ -13,35 +13,48 @@ import {
 export function SubCampaignCard({
   subCampaign,
   ...cardProps
-}: Readonly<{
-  subCampaign: FormSubCampaign;
-} & CardProps>) {
+}: Readonly<
+  {
+    subCampaign: FormSubCampaign;
+  } & CardProps
+>) {
+  const totalQuantity = subCampaign.ads.reduce(
+    (acc, ad) => acc + ad.quantity,
+    0
+  );
   return (
-    <Card sx={{ minWidth: "210px", maxWidth: "210px", height: "120px" }} {...cardProps}>
+    <Card
+      sx={{ minWidth: "210px", maxWidth: "210px", height: "120px" }}
+      raised
+      {...cardProps}
+    >
       <CardHeader
         sx={{
           padding: "8px 8px 4px",
         }}
         title={
-          <Box display="flex" alignItems="center" justifyContent="center">
+          <Typography
+            variant="h6"
+            sx={{
+              fontSize: "1.15rem",
+              lineClamp: 3,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "180px",
+              textAlign: "center",
+            }}
+          >
             {subCampaign.name}
             <CheckCircleIcon
-              fontSize="inherit"
+              sx={{ fontSize: "12px", verticalAlign: "middle" }}
               color={subCampaign.status ? "success" : "disabled"}
             />
-          </Box>
+          </Typography>
         }
-        titleTypographyProps={{
-          variant: "h6",
-          noWrap: true,
-          sx: {
-            width: "200px",
-          },
-        }}
       ></CardHeader>
       <CardContent sx={{ textAlign: "center", padding: "0 8px" }}>
         <Tooltip title="Số lượng" placement="left">
-          <Typography variant="h5">{0}</Typography>
+          <Typography variant="h5">{totalQuantity}</Typography>
         </Tooltip>
       </CardContent>
     </Card>
