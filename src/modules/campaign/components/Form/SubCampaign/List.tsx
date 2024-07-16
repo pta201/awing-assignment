@@ -4,8 +4,12 @@ import AddIcon from "@mui/icons-material/Add";
 import { Box, Fab } from "@mui/material";
 
 export function SubCampaignList() {
-  const { subCampaigns, addSubCampaign, setActiveSubCampaignId } =
-    useCampaign();
+  const {
+    subCampaigns,
+    addSubCampaign,
+    setActiveSubCampaignId,
+    activeSubCampaignId,
+  } = useCampaign();
   return (
     <Box
       display={"flex"}
@@ -25,6 +29,7 @@ export function SubCampaignList() {
             subCampaign={item}
             key={item.id}
             onClick={() => setActiveSubCampaignId(item.id)}
+            isActive={activeSubCampaignId === item.id}
           />
         );
       })}

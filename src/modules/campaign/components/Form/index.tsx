@@ -2,11 +2,12 @@ import { TabPanel } from "@/components/TabPanel";
 import { Box, Button, Container, Divider, Paper, Tabs } from "@mui/material";
 import Tab from "@mui/material/Tab";
 import React from "react";
-import { CampaignProvider } from "../../hooks/useCampaign";
+import { CampaignProvider, useCampaign } from "../../hooks/useCampaign";
 import { CampaignInformationPanel } from "@/modules/campaign/components/Form/CampainInformationPanel";
 import { SubCampaignPanel } from "@/modules/campaign/components/Form/SubCampaignPanel";
 
 function Form() {
+  const { submit } = useCampaign();
   const [activeTab, setActiveTab] = React.useState("information");
 
   const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -16,11 +17,10 @@ function Form() {
     e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>
   ) => {
     e.preventDefault();
-    const value = e;
-    console.log(value);
+    submit();
   };
   return (
-    <form onSubmit={handleFormSubmit}>
+    <form onSubmit={handleFormSubmit} noValidate>
       <Box display="flex" justifyContent="flex-end" p={"10px 20px"}>
         <Button type="submit" variant="contained" color="primary">
           Submit

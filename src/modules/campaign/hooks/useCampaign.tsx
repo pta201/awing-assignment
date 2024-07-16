@@ -1,5 +1,10 @@
-import { generateId } from "@/modules/campaign/helper";
-import { Ad, Campaign, SubCampaign } from "@/types";
+import {
+  constructPayload,
+  generateId,
+  validateCampaignInformation,
+  validateSubCampaign,
+} from "@/modules/campaign/helper";
+import { Ad, CampaignInformation, SubCampaign } from "@/types";
 import {
   createContext,
   PropsWithChildren,
@@ -15,35 +20,43 @@ export interface FormAd extends Ad {
 export interface FormSubCampaign extends SubCampaign {
   id: string;
   ads: FormAd[];
+  errors: string[];
+}
+export interface FormCampaignInformation extends CampaignInformation {
+  errors: string[];
 }
 export interface ICampaignFormContext {
-  information: Campaign["information"];
+  information: FormCampaignInformation;
   subCampaigns: FormSubCampaign[];
   currentSubCampaign: FormSubCampaign;
   activeSubCampaignId: string;
   setActiveSubCampaignId: (id: string) => void;
-  updateInformation: () => void;
-  updateSubCampaign: () => void;
+  updateInformation: ({ name, describe }: FormCampaignInformation) => void;
+  updateSubCampaign: (subCampaigns: FormSubCampaign[]) => void;
   addSubCampaign: () => void;
   updateSubCampaignName: (newName: string) => void;
   updateSubCampaignStatus: () => void;
-  removeSubCampaignAd: () => void;
+  removeSubCampaignAd: (id: string, subCampaignId: string) => void;
   addSubCampaignAd: () => void;
   updateAd: ({ id, value }: { id: string; value: Partial<FormAd> }) => void;
+  deleteAd: ({ id }: { id: string }) => void;
+  submit: () => void;
 }
 
 const CampaignFormContext = createContext<ICampaignFormContext>(null!);
 
 export const CampaignProvider = ({ children }: PropsWithChildren) => {
-  const [information, setInformation] = useState<Campaign["information"]>({
+  const [information, setInformation] = useState<FormCampaignInformation>({
     name: "",
     describe: "",
+    errors: [],
   });
   const [subCampaigns, setSubCampaigns] = useState<FormSubCampaign[]>([
     {
       id: generateId("sub-campaign"),
       name: "Chiến dịch con 1",
       status: true,
+      errors: [],
       ads: [
         {
           id: generateId("ad"),
@@ -56,14 +69,15 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
   const [activeSubCampaignId, setActiveSubCampaignId] = useState(
     subCampaigns[0].id
   );
-  const currentSubCampaign = subCampaigns.find(
-    (item) => item.id === activeSubCampaignId
-  );
+  const currentSubCampaign =
+    subCampaigns.find((item) => item.id === activeSubCampaignId) ??
+    subCampaigns[0];
+
   const handleUpdateInformation = ({
     name,
     describe,
-  }: Campaign["information"]) => {
-    setInformation({ name, describe });
+  }: FormCampaignInformation) => {
+    setInformation((prev) => ({ ...prev, name, describe }));
   };
 
   const handleUpdateSubCampaigns = (subCampaigns: FormSubCampaign[]) => {
@@ -96,6 +110,7 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
       ],
       name: `Chiến dịch con ${count + 1}`,
       status: true,
+      errors: [],
     };
     setSubCampaigns((prev) => [...prev, newSubCampaign]);
   }, [subCampaigns.length]);
@@ -183,6 +198,56 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
     },
     []
   );
+  const deleteAd = useCallback(
+    ({ id }: { id: string }) => {
+      const newAds = currentSubCampaign?.ads.filter((item) => item.id !== id);
+      setSubCampaigns((prev) => {
+        return prev.map((subCampaigns) => {
+          if (subCampaigns.id === currentSubCampaign?.id) {
+            return {
+              ...subCampaigns,
+              ads: newAds || [],
+            };
+          }
+          return subCampaigns;
+        });
+      });
+    },
+    [currentSubCampaign?.ads, currentSubCampaign?.id]
+  );
+
+  const submit = useCallback(() => {
+    let isError = false;
+    setSubCampaigns((prev) =>
+      prev.map((subCampaign) => {
+        const newErrors = validateSubCampaign(subCampaign);
+        console.log({ newErrors, subCampaign });
+
+        if (newErrors.length > 0) {
+          isError = true;
+        }
+        return {
+          ...subCampaign,
+          errors: newErrors,
+        };
+      })
+    );
+
+    const campaignInformationErrors = validateCampaignInformation(information);
+    if (campaignInformationErrors.length > 0) {
+      isError = true;
+      setInformation((prev) => ({
+        ...prev,
+        errors: campaignInformationErrors,
+      }));
+    }
+    if (isError) {
+      alert("Vui lòng điền đúng và đầy đủ thông tin");
+      return null;
+    }
+
+    alert(JSON.stringify(constructPayload({ information, subCampaigns })));
+  }, [information, subCampaigns]);
 
   const value = useMemo(
     () => ({
@@ -199,6 +264,8 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
       removeSubCampaignAd,
       addSubCampaignAd,
       updateAd,
+      deleteAd,
+      submit,
     }),
 
     [
@@ -212,6 +279,8 @@ export const CampaignProvider = ({ children }: PropsWithChildren) => {
       updateAd,
       updateSubCampaignName,
       updateSubCampaignStatus,
+      deleteAd,
+      submit,
     ]
   );
 

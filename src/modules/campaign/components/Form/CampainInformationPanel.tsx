@@ -1,3 +1,4 @@
+import { isNameValid } from "@/modules/campaign/helper";
 import { useCampaign } from "@/modules/campaign/hooks/useCampaign";
 import { Box, TextField } from "@mui/material";
 
@@ -20,6 +21,7 @@ export function CampaignInformationPanel() {
         fullWidth
         value={information.name}
         onChange={handleNameChange}
+        error={information.errors.length > 0 && !isNameValid(information.name)}
       />
       <TextField
         id="campaign-description"

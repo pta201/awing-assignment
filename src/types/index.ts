@@ -1,11 +1,12 @@
 export interface Campaign {
-  information: {
-    name: string;
-    describe?: string;
-  };
+  information: CampaignInformation;
   subCampaigns: SubCampaign[];
 }
 
+export interface CampaignInformation {
+  name: string;
+  describe?: string;
+}
 export interface SubCampaign {
   name: string;
   status: boolean;

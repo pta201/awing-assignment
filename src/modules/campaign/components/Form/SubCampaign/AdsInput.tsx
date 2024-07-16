@@ -10,22 +10,26 @@ import {
   TextField,
   Tooltip,
   Button,
+  IconButton,
 } from "@mui/material";
 import React from "react";
 import Delete from "@mui/icons-material/Delete";
-interface Props {}
+import { isAdQuantityValid, isNameValid } from "@/modules/campaign/helper";
 
 function EnhancedTableHead({
-  numSelected,
+  selected,
   onSelectAllClick,
   rowCount,
 }: Readonly<{
-  numSelected: number;
+  selected: string[];
   onSelectAllClick: () => void;
   rowCount: number;
 }>) {
-  const { addSubCampaignAd } = useCampaign();
-
+  const { addSubCampaignAd, deleteAd } = useCampaign();
+  const handleDeleteSelected = () => {
+    selected.forEach((id) => deleteAd({ id }));
+  };
+  const numSelected = selected.length;
   return (
     <TableHead>
       <TableRow>
@@ -40,8 +44,21 @@ function EnhancedTableHead({
             }}
           />
         </TableCell>
-        <TableCell align="left">Tên</TableCell>
-        <TableCell align="left">Số lượng</TableCell>
+
+        <TableCell align="left" padding="none">
+          {numSelected > 0 ? (
+            <Tooltip title="Delete">
+              <IconButton onClick={handleDeleteSelected}>
+                <Delete />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            "Tên quảng cáo*"
+          )}
+        </TableCell>
+        <TableCell align="left" padding="none">
+          {numSelected === 0 && "Số lượng*"}
+        </TableCell>
         <TableCell align="right">
           <Button onClick={addSubCampaignAd}>Thêm</Button>
         </TableCell>
@@ -50,13 +67,19 @@ function EnhancedTableHead({
   );
 }
 
-export function AdsInput({}: Props) {
-  const { currentSubCampaign, updateAd } = useCampaign();
+export function AdsInput() {
+  const { currentSubCampaign, updateAd, deleteAd } = useCampaign();
   const [selected, setSelected] = React.useState<string[]>([]);
-  const handleSelectAllClick = () => {
-    setSelected([]);
-  };
   const rows = currentSubCampaign.ads;
+
+  const handleSelectAllClick = () => {
+    setSelected((prev) => {
+      const shouldCheckAll = rows.length !== prev.length;
+      if (!shouldCheckAll) return [];
+      return rows.map((item) => item.id);
+    });
+  };
+
   const isSelected = (id: string) => selected.includes(id);
 
   const handleCheck = (id: string) => {
@@ -67,6 +90,7 @@ export function AdsInput({}: Props) {
       return [...prev, id];
     });
   };
+
   const handleUpdateAd = ({
     id,
     propName,
@@ -79,16 +103,21 @@ export function AdsInput({}: Props) {
     updateAd({ id, value: { [propName]: value } });
   };
 
-  const handleDeleteAds = (ids: string[]) => () => {};
+  const handleDeleteAds = (ids: string[]) => () => {
+    ids.forEach((id) => deleteAd({ id }));
+  };
+
+  const isSubCampaignInvalid = currentSubCampaign.errors.length > 0;
   return (
     <TableContainer>
       <Table
         sx={{ minWidth: 750 }}
+        title="Danh sách quảng cáo"
         aria-labelledby="tableTitle"
         size={"medium"}
       >
         <EnhancedTableHead
-          numSelected={selected.length}
+          selected={selected}
           onSelectAllClick={handleSelectAllClick}
           rowCount={rows.length}
         />
@@ -126,7 +155,7 @@ export function AdsInput({}: Props) {
                   <TextField
                     fullWidth
                     id="adsName"
-                    error={!row.name}
+                    error={isSubCampaignInvalid && !isNameValid(row.name)}
                     required
                     variant="standard"
                     value={row.name}
@@ -144,7 +173,7 @@ export function AdsInput({}: Props) {
                     fullWidth
                     id="adsQuantity"
                     type="number"
-                    error={!row.quantity}
+                    error={isSubCampaignInvalid && !isAdQuantityValid(row)}
                     required
                     variant="standard"
                     value={row.quantity}
@@ -170,78 +199,3 @@ export function AdsInput({}: Props) {
     </TableContainer>
   );
 }
-
-// <TableContainer>
-//   <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle" size={"medium"}>
-//     <EnhancedTableHead
-//       numSelected={selected.length}
-//       onSelectAllClick={handleSelectAllClick}
-//       rowCount={rows.length}
-//     />
-//     <TableBody>
-//       {rows.map((row, index) => {
-//         const isItemSelected = isSelected(row.id);
-//         const labelId = `enhanced-table-checkbox-${index}`;
-
-//         return (
-//           <TableRow
-//             hover
-//             role="checkbox"
-//             aria-checked={isItemSelected}
-//             tabIndex={-1}
-//             key={row.id}
-//             selected={isItemSelected}
-//             sx={{ cursor: "pointer" }}
-//           >
-//             <TableCell padding="checkbox">
-//               <Checkbox
-//                 color="primary"
-//                 checked={isItemSelected}
-//                 inputProps={{
-//                   "aria-labelledby": labelId,
-//                 }}
-//                 onClick={(event) => handleClick(event, row.id)}
-//               />
-//             </TableCell>
-//             <TableCell component="th" id={labelId} scope="row" padding="none">
-//               <TextField
-//                 sx={{
-//                   width: "100%",
-//                 }}
-//                 id="adsName"
-//                 error={!row.name}
-//                 required
-//                 variant="standard"
-//                 value={row.name}
-//                 onChange={(e) =>
-//                   onChangeValuesAds(row.id, "name", e.target.value || "")
-//                 }
-//               />
-//             </TableCell>
-//             <TableCell align="right">
-//               <TextField
-//                 sx={{
-//                   width: "100%",
-//                 }}
-//                 id="adsQuanlity"
-//                 type="number"
-//                 error={!row.quanlity}
-//                 required
-//                 variant="standard"
-//                 value={row.quanlity}
-//                 onChange={(e) =>
-//                   onChangeValuesAds(row.id, "quantity", +e.target.value || "")
-//                 }
-//               />
-//             </TableCell>
-//             <TableCell align="right">
-//               <Tooltip title="Xoá" onClick={onDeleteAdsCampaign([row.id])}>
-//                 <DeleteIcon />
-//               </Tooltip>
-//             </TableCell>
-//           </TableRow>
-//         );
-//       })}
-//     </TableBody>
-//   </Table>
-// </TableContainer>;

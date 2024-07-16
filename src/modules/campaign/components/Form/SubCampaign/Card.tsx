@@ -1,7 +1,6 @@
 import { FormSubCampaign } from "@/modules/campaign/hooks/useCampaign";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
-  Box,
   Card,
   CardContent,
   CardHeader,
@@ -12,19 +11,28 @@ import {
 
 export function SubCampaignCard({
   subCampaign,
+  isActive,
   ...cardProps
 }: Readonly<
   {
     subCampaign: FormSubCampaign;
+    isActive: boolean;
   } & CardProps
 >) {
   const totalQuantity = subCampaign.ads.reduce(
-    (acc, ad) => acc + ad.quantity,
+    (acc, ad) => acc + Number(ad.quantity),
     0
   );
   return (
     <Card
-      sx={{ minWidth: "210px", maxWidth: "210px", height: "120px" }}
+      sx={{
+        minWidth: "210px",
+        maxWidth: "210px",
+        height: "120px",
+        borderColor: isActive ? "skyblue" : "transparent",
+        borderWidth: "2px",
+        borderStyle: "solid",
+      }}
       raised
       {...cardProps}
     >
@@ -42,6 +50,7 @@ export function SubCampaignCard({
               textOverflow: "ellipsis",
               maxWidth: "180px",
               textAlign: "center",
+              color: subCampaign.errors.length > 0 ? "red" : "inherit",
             }}
           >
             {subCampaign.name}
